@@ -1,528 +1,486 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Design Rescue - Creative Challenge</title>
-
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f0fa;
-  color: #29223b;
-}
-
-header {
-  background: #29223b;
-  color: white;
-  padding: 22px;
-  text-align: center;
-}
-
-header h1 {
-  margin: 0;
-}
-
-main {
-  max-width: 1000px;
-  margin: auto;
-  padding: 25px 15px;
-}
-
-.workspace {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
-}
-
-.panel {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 5px 20px #0001;
-}
-
-.poster {
-  position: relative;
-  width: 100%;
-  max-width: 420px;
-  aspect-ratio: 4 / 5;
-  margin: auto;
-  background: #f4bfd0;
-  overflow: hidden;
-  border: 5px solid white;
-}
-
-.element {
-  position: absolute;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  padding: 5px;
-}
-
-.element.selected {
-  outline: 2px dashed #7256d8;
-}
-
-#title {
-  top: 20%;
-  left: 10%;
-  width: 80%;
-  font-size: 40px;
-  font-weight: bold;
-  text-align: center;
-}
-
-#subtitle {
-  top: 50%;
-  left: 10%;
-  width: 80%;
-  text-align: center;
-  font-size: 17px;
-}
-
-#details {
-  top: 75%;
-  left: 10%;
-  width: 80%;
-  text-align: center;
-  font-size: 15px;
-}
-
-.controls {
-  display: grid;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-input, button {
-  padding: 11px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font: inherit;
-}
-
-button {
-  background: #7256d8;
-  color: white;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-button:hover {
-  background: #5740b0;
-}
-
-.judge {
-  padding: 12px;
-  background: #f4f0fa;
-  border-radius: 10px;
-  margin: 10px 0;
-}
-
-.feedback {
-  margin-top: 15px;
-  line-height: 1.5;
-  font-weight: bold;
-}
-
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #f5f0fa; color: #29223b; }
+header { background: #29223b; color: white; padding: 22px; text-align: center; }
+header h1 { margin: 0; }
+main { max-width: 1000px; margin: auto; padding: 25px 15px; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 25px; align-items: start; }
+.panel { min-width: 0; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px #0001; }
+.editor { position: relative; width: 100%; max-width: 480px; margin: auto; }
+.editor-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px; margin: 0 0 10px; background: #f4f0fa; border: 1px solid #e8e1f3; border-radius: 12px; }
+.editor-toolbar button, .layer-actions button { padding: 8px 10px; font-size: 13px; }
+.poster { position: relative; width: 100%; max-width: 420px; aspect-ratio: 4 / 5; margin: auto; background: #f4bfd0; overflow: hidden; border: 5px solid white; box-shadow: 0 4px 18px #29223b22; touch-action: none; }
+.element { position: absolute; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; padding: 5px; min-width: 18px; min-height: 18px; white-space: pre-wrap; overflow-wrap: anywhere; transform-origin: center; }
+.element:active { cursor: grabbing; }
+.element.selected { outline: 2px dashed #7256d8; outline-offset: 1px; z-index: 20 !important; }
+.element[contenteditable="true"] { cursor: text; user-select: text; -webkit-user-select: text; touch-action: auto; }
+.resize-handle { position: absolute; width: 12px; height: 12px; padding: 0; min-width: 12px; min-height: 12px; border: 2px solid #7256d8; border-radius: 50%; background: white; z-index: 50; touch-action: none; }
+.resize-handle.nw { top: -7px; left: -7px; cursor: nwse-resize; }
+.resize-handle.ne { top: -7px; right: -7px; cursor: nesw-resize; }
+.resize-handle.sw { bottom: -7px; left: -7px; cursor: nesw-resize; }
+.resize-handle.se { bottom: -7px; right: -7px; cursor: nwse-resize; }
+.selection-toolbar { position: absolute; z-index: 80; display: none; width: min(96%, 440px); max-height: 48%; overflow: auto; padding: 8px; background: white; border: 1px solid #ded5f3; border-radius: 12px; box-shadow: 0 5px 20px #29223b33; }
+.selection-toolbar.open { display: grid; gap: 6px; }
+.selection-toolbar .property-row, .selection-toolbar .layer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.selection-toolbar input[type="text"] { flex: 1 1 120px; min-width: 80px; }
+.selection-toolbar select { flex: 1 1 110px; min-width: 85px; }
+.selection-toolbar input[type="range"] { width: 75px; padding: 0; }
+.selection-toolbar input[type="color"] { width: 36px; height: 34px; padding: 3px; }
+.selection-toolbar label { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; white-space: nowrap; }
+.selection-toolbar button { padding: 7px 8px; font-size: 12px; }
+input, button, select { border-radius: 8px; border: 1px solid #ddd; font: inherit; }
+button { background: #7256d8; color: white; border: none; cursor: pointer; font-weight: bold; }
+button:hover { background: #5740b0; }
+button:disabled { opacity: .48; cursor: not-allowed; }
+.tool-button { background: white; color: #392d61; border: 1px solid #ded5f3; }
+.tool-button:hover { color: white; background: #5740b0; }
+#backgroundColor { width: 34px; height: 34px; padding: 3px; background: white; }
+.poster-help { margin: 8px 3px 0; color: #625a73; font-size: 13px; text-align: center; }
+.judge { padding: 12px; background: #f4f0fa; border-radius: 10px; margin: 10px 0; }
+.feedback { margin-top: 15px; line-height: 1.5; font-weight: bold; }
+#imageUpload { display: none; }
 @media (max-width: 700px) {
-  .workspace {
-    grid-template-columns: 1fr;
-  }
+  main { padding: 18px 10px; }
+  .workspace { grid-template-columns: 1fr; gap: 16px; }
+  .panel { padding: 14px; }
+  .editor-toolbar { gap: 5px; padding: 6px; }
+  .editor-toolbar button { padding: 8px; }
+  .selection-toolbar { width: 96%; }
+  .resize-handle { width: 15px; height: 15px; }
 }
 </style>
 </head>
-
 <body>
-
-<header>
-  <h1>🎨 DESIGN RESCUE</h1>
-  <p>The Creative Challenge</p>
-</header>
-
+<header><h1>🎨 DESIGN RESCUE</h1><p>The Creative Challenge</p></header>
 <main>
-
   <h2 id="levelTitle">Level 1: Save the Music Poster</h2>
-
   <div class="workspace">
-
     <section class="panel">
       <h3>Your Poster</h3>
-
-      <div class="poster" id="poster">
-
-        <div class="element" id="title">
-          STATIC BLOOM
+      <div class="editor" id="editor">
+        <div class="editor-toolbar" aria-label="Poster tools">
+          <button type="button" class="tool-button" id="undoButton" title="Undo (Ctrl/Cmd+Z)" aria-label="Undo">↶ Undo</button>
+          <button type="button" class="tool-button" id="redoButton" title="Redo (Ctrl/Cmd+Y)" aria-label="Redo">↷ Redo</button>
+          <button type="button" class="tool-button" id="addTextButton">＋ Text</button>
+          <button type="button" class="tool-button" id="addShapeButton">＋ Shape</button>
+          <button type="button" class="tool-button" id="addStickerButton">＋ Sticker</button>
+          <button type="button" class="tool-button" id="uploadButton">＋ Image</button>
+          <label for="backgroundColor" title="Poster background" style="font-size:13px">BG</label>
+          <input id="backgroundColor" type="color" value="#f4bfd0" aria-label="Poster background color">
+          <input id="imageUpload" type="file" accept="image/*" aria-label="Upload an image">
         </div>
-
-        <div class="element" id="subtitle">
-          LIVE MUSIC • ONE NIGHT ONLY
+        <div class="poster" id="poster" aria-label="Poster canvas">
+          <div class="element" id="title" data-kind="text" style="top:20%;left:10%;width:80%;font-size:40px;font-weight:bold;text-align:center">STATIC BLOOM</div>
+          <div class="element" id="subtitle" data-kind="text" style="top:50%;left:10%;width:80%;text-align:center;font-size:17px">LIVE MUSIC • ONE NIGHT ONLY</div>
+          <div class="element" id="details" data-kind="text" style="top:75%;left:10%;width:80%;text-align:center;font-size:15px">FRIDAY • 8 PM<br>THE OLD THEATRE</div>
         </div>
-
-        <div class="element" id="details">
-          FRIDAY • 8 PM<br>
-          THE OLD THEATRE
+        <div class="selection-toolbar" id="selectionToolbar" aria-label="Selected object controls">
+          <div class="property-row">
+            <input id="textInput" type="text" placeholder="Select text to edit" aria-label="Edit selected text">
+            <select id="fontFamily" aria-label="Font family">
+              <option value="Arial, sans-serif">Arial</option><option value="Georgia, serif">Georgia</option><option value="'Trebuchet MS', sans-serif">Trebuchet</option><option value="'Courier New', monospace">Courier</option><option value="Impact, sans-serif">Impact</option>
+            </select>
+          </div>
+          <div class="property-row">
+            <label>Size <input id="fontSize" type="range" min="10" max="72" value="40"></label>
+            <input id="textColor" type="color" value="#29223b" aria-label="Object color" title="Text or shape color">
+            <label>↻ <input id="rotation" type="range" min="-180" max="180" value="0" aria-label="Rotation"></label>
+            <span id="rotationValue" style="font-size:11px">0°</span>
+          </div>
+          <div class="layer-actions">
+            <button type="button" id="duplicateButton" title="Duplicate">⧉ Duplicate</button>
+            <button type="button" id="backwardButton" title="Move backward">↓ Back</button>
+            <button type="button" id="forwardButton" title="Move forward">↑ Front</button>
+            <button type="button" id="deleteButton" title="Delete">🗑 Delete</button>
+          </div>
         </div>
-
       </div>
-
-      <div class="controls">
-
-        <label>Edit selected text:</label>
-        <input id="textInput" type="text"
-          placeholder="Select a text element first">
-
-        <label>Change text color:</label>
-        <input id="textColor" type="color"
-          value="#29223b">
-
-        <label>Change font size:</label>
-        <input id="fontSize" type="range"
-          min="10" max="65" value="40">
-
-        <label>Change poster background:</label>
-        <input id="backgroundColor" type="color"
-          value="#f4bfd0">
-
-        <button onclick="addText()">
-          + Add Text
-        </button>
-
-        <button onclick="addShape()">
-          + Add Shape
-        </button>
-
-        <button onclick="deleteElement()">
-          Delete Selected Element
-        </button>
-
-      </div>
+      <p class="poster-help">Tap an object to select · drag to move · pull a corner to resize · double-tap text to type</p>
     </section>
-
     <section class="panel">
-
       <h3>Client Brief</h3>
-
-      <p id="brief">
-        The Static Bloom needs a music poster
-        that feels exciting, professional,
-        and easy to read.
-      </p>
-
+      <p id="brief">The Static Bloom needs a music poster that feels exciting, professional, and easy to read.</p>
       <h3>What the judges are looking for</h3>
-
-      <ul>
-        <li>Clear and readable typography</li>
-        <li>Colors that work well together</li>
-        <li>Balanced spacing and composition</li>
-        <li>A strong overall design</li>
-      </ul>
-
+      <ul><li>Clear and readable typography</li><li>Colors that work well together</li><li>Balanced spacing and composition</li><li>A strong overall design</li></ul>
       <h3>Meet Your Judges</h3>
-
-      <div class="judge">
-        🎨 <b>Art Director</b>
-        <p>Professionalism and readability</p>
-        <span id="artScore">Score: —</span>
-      </div>
-
-      <div class="judge">
-        🌈 <b>Color Expert</b>
-        <p>Color harmony and contrast</p>
-        <span id="colorScore">Score: —</span>
-      </div>
-
-      <div class="judge">
-        ✨ <b>Creative Director</b>
-        <p>Composition and visual impact</p>
-        <span id="creativeScore">Score: —</span>
-      </div>
-
-      <button onclick="submitDesign()">
-        Submit Design to Judges
-      </button>
-
-      <div class="feedback" id="feedback"></div>
-
-      <button id="nextLevel" onclick="nextLevel()"
-        style="display:none; margin-top:15px;">
-        Next Challenge →
-      </button>
-
+      <div class="judge">🎨 <b>Art Director</b><p>Professionalism and readability</p><span id="artScore">Score: —</span></div>
+      <div class="judge">🌈 <b>Color Expert</b><p>Color harmony and contrast</p><span id="colorScore">Score: —</span></div>
+      <div class="judge">✨ <b>Creative Director</b><p>Composition and visual impact</p><span id="creativeScore">Score: —</span></div>
+      <button type="button" id="submitButton">Submit Design to Judges</button>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+      <button type="button" id="nextLevel" style="display:none;margin-top:15px">Next Challenge →</button>
     </section>
-
   </div>
 </main>
-
 <script>
+'use strict';
 let selectedElement = null;
 let currentLevel = 0;
 let extraNumber = 0;
-
+let undoStack = [];
+let redoStack = [];
+let isRestoring = false;
+const poster = document.getElementById('poster');
+const editor = document.getElementById('editor');
+const selectionToolbar = document.getElementById('selectionToolbar');
 const levels = [
-  {
-    title: "Level 1: Save the Music Poster",
-    client: "The Static Bloom",
-    brief: "Create an exciting, professional poster for a local indie band."
-  },
-  {
-    title: "Level 2: Freshen Up the Market",
-    client: "Sunday Harvest Market",
-    brief: "Create a welcoming farmers market poster using fresh colors and clear information."
-  },
-  {
-    title: "Level 3: Promote a Workshop",
-    client: "Make Space Studio",
-    brief: "Design a playful but organized poster for a creative workshop."
-  },
-  {
-    title: "Level 4: Outdoor Cinema",
-    client: "Moonlight Movies",
-    brief: "Create an atmospheric poster for an outdoor movie night."
-  },
-  {
-    title: "Level 5: Art Collection Launch",
-    client: "MM Creations",
-    brief: "Create a polished and memorable poster announcing a new art collection."
-  },
-  {
-    title: "Bonus 1: Run for a Reason",
-    client: "Steps for Shelter",
-    brief: "Design an energetic poster encouraging people to join a charity 5K."
-  },
-  {
-    title: "Bonus 2: Café Grand Opening",
-    client: "Little Fern Café",
-    brief: "Create a warm and inviting poster for a new independent café."
-  }
+  { title: 'Level 1: Save the Music Poster', client: 'The Static Bloom', brief: 'Create an exciting, professional poster for a local indie band.' },
+  { title: 'Level 2: Freshen Up the Market', client: 'Sunday Harvest Market', brief: 'Create a welcoming farmers market poster using fresh colors and clear information.' },
+  { title: 'Level 3: Promote a Workshop', client: 'Make Space Studio', brief: 'Design a playful but organized poster for a creative workshop.' },
+  { title: 'Level 4: Outdoor Cinema', client: 'Moonlight Movies', brief: 'Create an atmospheric poster for an outdoor movie night.' },
+  { title: 'Level 5: Art Collection Launch', client: 'MM Creations', brief: 'Create a polished and memorable poster announcing a new art collection.' }
 ];
-
-function selectElement(element) {
-  selectedElement = element;
-
-  document.querySelectorAll(".element")
-    .forEach(el => el.classList.remove("selected"));
-
-  element.classList.add("selected");
-
-  document.getElementById("textInput").value =
-    element.innerText;
-
-  document.getElementById("textColor").value =
-    rgbToHex(getComputedStyle(element).color);
-
-  document.getElementById("fontSize").value =
-    parseInt(getComputedStyle(element).fontSize);
+function cleanElement(element) {
+  const clone = element.cloneNode(true);
+  clone.querySelectorAll('.resize-handle').forEach(handle => handle.remove());
+  clone.classList.remove('selected');
+  clone.removeAttribute('contenteditable');
+  return clone;
 }
-
+function snapshot() {
+  return { background: poster.style.backgroundColor || poster.style.background || getComputedStyle(poster).backgroundColor,
+    elements: Array.from(poster.querySelectorAll('.element')).map(cleanElement).map(el => el.outerHTML) };
+}
+function pushUndo() {
+  if (isRestoring) return;
+  undoStack.push(snapshot());
+  if (undoStack.length > 80) undoStack.shift();
+  redoStack = [];
+  updateHistoryButtons();
+}
+function restoreState(state) {
+  if (!state) return;
+  isRestoring = true;
+  poster.querySelectorAll('.element').forEach(el => el.remove());
+  poster.style.background = state.background;
+  state.elements.forEach(markup => poster.insertAdjacentHTML('beforeend', markup));
+  selectedElement = null;
+  selectionToolbar.classList.remove('open');
+  isRestoring = false;
+  updateHistoryButtons();
+}
+function updateHistoryButtons() {
+  document.getElementById('undoButton').disabled = undoStack.length === 0;
+  document.getElementById('redoButton').disabled = redoStack.length === 0;
+}
+function undo() {
+  if (!undoStack.length) return;
+  redoStack.push(snapshot());
+  restoreState(undoStack.pop());
+}
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(snapshot());
+  restoreState(redoStack.pop());
+}
 function rgbToHex(color) {
-  const values = color.match(/\d+/g);
-  return "#" + values.slice(0, 3)
-    .map(v => Number(v).toString(16).padStart(2, "0"))
-    .join("");
+  const values = color.match(/[\d.]+/g);
+  if (!values || values.length < 3) return '#29223b';
+  return '#' + values.slice(0, 3).map(v => Math.round(Number(v)).toString(16).padStart(2, '0')).join('');
 }
-
-document.querySelectorAll(".element").forEach(element => {
-  makeDraggable(element);
-  element.addEventListener("click", () =>
-    selectElement(element));
-});
-
-document.getElementById("textInput")
-  .addEventListener("input", event => {
-    if (selectedElement) {
-      selectedElement.innerText = event.target.value;
-    }
-  });
-
-document.getElementById("textColor")
-  .addEventListener("input", event => {
-    if (selectedElement) {
-      selectedElement.style.color = event.target.value;
-    }
-  });
-
-document.getElementById("fontSize")
-  .addEventListener("input", event => {
-    if (selectedElement) {
-      selectedElement.style.fontSize =
-        event.target.value + "px";
-    }
-  });
-
-document.getElementById("backgroundColor")
-  .addEventListener("input", event => {
-    document.getElementById("poster")
-      .style.background = event.target.value;
-  });
-
-function makeDraggable(element) {
-  let startX, startY, originalX, originalY;
-
-  element.addEventListener("pointerdown", event => {
-    if (event.target !== element) return;
-
-    selectElement(element);
-
-    const poster = document.getElementById("poster");
-    const posterRect = poster.getBoundingClientRect();
-    const rect = element.getBoundingClientRect();
-
-    startX = event.clientX;
-    startY = event.clientY;
-
-    originalX = rect.left - posterRect.left;
-    originalY = rect.top - posterRect.top;
-
-    element.setPointerCapture(event.pointerId);
-
-    function move(moveEvent) {
-      const x = originalX + moveEvent.clientX - startX;
-      const y = originalY + moveEvent.clientY - startY;
-
-      element.style.left =
-        (x / posterRect.width * 100) + "%";
-
-      element.style.top =
-        (y / posterRect.height * 100) + "%";
-    }
-
-    function stop() {
-      element.removeEventListener("pointermove", move);
-      element.removeEventListener("pointerup", stop);
-    }
-
-    element.addEventListener("pointermove", move);
-    element.addEventListener("pointerup", stop);
+function addHandles(element) {
+  element.querySelectorAll('.resize-handle').forEach(handle => handle.remove());
+  ['nw', 'ne', 'sw', 'se'].forEach(corner => {
+    const handle = document.createElement('button');
+    handle.type = 'button'; handle.className = 'resize-handle ' + corner;
+    handle.dataset.handle = corner; handle.setAttribute('aria-label', 'Resize object ' + corner);
+    element.appendChild(handle);
   });
 }
-
+function positionSelectionToolbar() {
+  if (!selectedElement || !selectedElement.isConnected) return;
+  const shellRect = editor.getBoundingClientRect();
+  const elementRect = selectedElement.getBoundingClientRect();
+  const toolbarHeight = selectionToolbar.offsetHeight || 120;
+  let top = elementRect.top - shellRect.top - toolbarHeight - 8;
+  if (top < 54) top = Math.min(editor.clientHeight - toolbarHeight - 4, elementRect.bottom - shellRect.top + 8);
+  top = Math.max(50, Math.min(top, editor.clientHeight - toolbarHeight - 3));
+  selectionToolbar.style.top = top + 'px';
+  selectionToolbar.style.left = '50%';
+  selectionToolbar.style.transform = 'translateX(-50%)';
+}
+function selectElement(element) {
+  if (!element || !element.classList.contains('element')) return;
+  if (selectedElement && selectedElement !== element) {
+    selectedElement.classList.remove('selected');
+    selectedElement.querySelectorAll('.resize-handle').forEach(handle => handle.remove());
+    selectedElement.removeAttribute('contenteditable');
+  }
+  selectedElement = element;
+  element.classList.add('selected');
+  addHandles(element);
+  const isText = element.dataset.kind === 'text' || (!element.dataset.kind && !element.querySelector('img'));
+  const textInput = document.getElementById('textInput');
+  textInput.disabled = !isText;
+  textInput.placeholder = isText ? 'Edit selected text' : 'Select text to edit';
+  textInput.value = isText ? element.innerText.replace(/\n+$/, '') : '';
+  document.getElementById('textColor').value = rgbToHex(getComputedStyle(element).color);
+  document.getElementById('fontSize').value = Math.max(10, Math.min(72, parseInt(getComputedStyle(element).fontSize, 10) || 22));
+  document.getElementById('fontFamily').value = getComputedStyle(element).fontFamily;
+  const rotationMatch = (element.style.transform || '').match(/rotate\((-?[\d.]+)deg\)/);
+  const rotation = rotationMatch ? Number(rotationMatch[1]) : 0;
+  document.getElementById('rotation').value = rotation;
+  document.getElementById('rotationValue').textContent = rotation + '°';
+  selectionToolbar.classList.add('open');
+  requestAnimationFrame(positionSelectionToolbar);
+}
+function deselect() {
+  if (selectedElement) {
+    selectedElement.classList.remove('selected');
+    selectedElement.querySelectorAll('.resize-handle').forEach(handle => handle.remove());
+    selectedElement.removeAttribute('contenteditable');
+  }
+  selectedElement = null;
+  selectionToolbar.classList.remove('open');
+}
+function makeElement(kind, content, styles) {
+  const element = document.createElement('div');
+  element.className = 'element';
+  element.dataset.kind = kind;
+  element.id = 'extra-' + (++extraNumber);
+  if (kind === 'image') {
+    const image = document.createElement('img');
+    image.src = content; image.alt = 'Uploaded poster image';
+    image.style.cssText = 'display:block;width:100%;height:100%;object-fit:contain;pointer-events:none';
+    element.appendChild(image);
+  } else {
+    element.textContent = content;
+  }
+  Object.assign(element.style, styles);
+  poster.appendChild(element);
+  selectElement(element);
+  return element;
+}
 function addText() {
-  extraNumber++;
-
-  const element = document.createElement("div");
-  element.className = "element";
-  element.innerText = "YOUR TEXT";
-  element.style.cssText =
-    "top:30%;left:15%;width:70%;font-size:22px;text-align:center;color:#29223b;";
-
-  document.getElementById("poster").appendChild(element);
-
-  makeDraggable(element);
-  selectElement(element);
+  pushUndo();
+  const el = makeElement('text', 'YOUR TEXT', { top: '35%', left: '15%', width: '70%', minHeight: '32px', fontSize: '22px', textAlign: 'center', color: '#29223b', backgroundColor: 'rgba(255,255,255,.55)' });
+  document.getElementById('textInput').focus();
+  document.getElementById('textInput').select();
+  return el;
 }
-
 function addShape() {
-  extraNumber++;
-
-  const element = document.createElement("div");
-  element.className = "element";
-  element.style.cssText =
-    "top:35%;left:30%;width:40%;height:15%;background:#f9e879;border-radius:50%;";
-
-  document.getElementById("poster").appendChild(element);
-
-  makeDraggable(element);
-  selectElement(element);
+  pushUndo();
+  return makeElement('shape', '', { top: '36%', left: '30%', width: '40%', height: '15%', minHeight: '30px', backgroundColor: '#f9e879', borderRadius: '50%' });
 }
-
+function addSticker() {
+  pushUndo();
+  return makeElement('sticker', '⭐', { top: '36%', left: '38%', width: '24%', height: '18%', fontSize: '58px', textAlign: 'center', lineHeight: '1' });
+}
 function deleteElement() {
   if (!selectedElement) return;
-
-  selectedElement.remove();
-  selectedElement = null;
-  document.getElementById("textInput").value = "";
+  pushUndo();
+  selectedElement.remove(); selectedElement = null;
+  selectionToolbar.classList.remove('open');
 }
-
-function submitDesign() {
-  const title = document.getElementById("title");
-  const details = document.getElementById("details");
-  const poster = document.getElementById("poster");
-
-  const titleSize =
-    parseInt(getComputedStyle(title).fontSize);
-
-  const art = Math.min(100,
-    50 + (titleSize >= 30 ? 25 : 0) +
-    (details.innerText.trim().length > 5 ? 15 : 0));
-
-  const color = Math.min(100,
-    poster.querySelectorAll(".element").length >= 3 ? 85 : 55);
-
-  const creative = Math.min(100,
-    poster.querySelectorAll(".element").length >= 4 ? 90 : 60);
-
-  document.getElementById("artScore").innerText =
-    "Score: " + art + "/100";
-
-  document.getElementById("colorScore").innerText =
-    "Score: " + color + "/100";
-
-  document.getElementById("creativeScore").innerText =
-    "Score: " + creative + "/100";
-
-  const total = Math.round((art + color + creative) / 3);
-
-  const feedback = document.getElementById("feedback");
-
-  if (total >= 65) {
-    feedback.innerHTML =
-      "🎉 POSTER SAVED! Your judges approve your design. Overall score: " +
-      total + "/100.";
-
-    document.getElementById("nextLevel").style.display =
-      currentLevel < levels.length - 1 ? "block" : "none";
+function duplicateElement() {
+  if (!selectedElement) return;
+  pushUndo();
+  const clone = cleanElement(selectedElement);
+  clone.id = 'extra-' + (++extraNumber);
+  clone.style.left = (parseFloat(selectedElement.style.left) || 10) + 3 + '%';
+  clone.style.top = (parseFloat(selectedElement.style.top) || 10) + 3 + '%';
+  poster.appendChild(clone); selectElement(clone);
+}
+function moveLayer(direction) {
+  if (!selectedElement) return;
+  pushUndo();
+  if (direction > 0) {
+    const next = selectedElement.nextElementSibling;
+    if (next) poster.insertBefore(next, selectedElement);
+    selectedElement.style.zIndex = String((parseInt(selectedElement.style.zIndex, 10) || 1) + 1);
   } else {
-    feedback.innerHTML =
-      "🛠️ DESIGN NEEDS RESCUE! Keep adjusting your layout, colors, and typography. Score: " +
-      total + "/100. Try again!";
+    const previous = selectedElement.previousElementSibling;
+    if (previous) poster.insertBefore(selectedElement, previous);
+    selectedElement.style.zIndex = String(Math.max(0, (parseInt(selectedElement.style.zIndex, 10) || 1) - 1));
+  }
+  selectElement(selectedElement);
+}
+function beginDrag(event, element) {
+  const rect = poster.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+  const startX = event.clientX, startY = event.clientY;
+  const originalLeft = (elementRect.left - rect.left) / rect.width * 100;
+  const originalTop = (elementRect.top - rect.top) / rect.height * 100;
+  pushUndo();
+  element.setPointerCapture(event.pointerId);
+  const move = moveEvent => {
+    const dx = (moveEvent.clientX - startX) / rect.width * 100;
+    const dy = (moveEvent.clientY - startY) / rect.height * 100;
+    element.style.left = Math.max(0, Math.min(98, originalLeft + dx)) + '%';
+    element.style.top = Math.max(0, Math.min(98, originalTop + dy)) + '%';
+    positionSelectionToolbar();
+  };
+  const stop = () => {
+    element.removeEventListener('pointermove', move);
+    element.removeEventListener('pointerup', stop);
+    element.removeEventListener('pointercancel', stop);
+  };
+  element.addEventListener('pointermove', move);
+  element.addEventListener('pointerup', stop);
+  element.addEventListener('pointercancel', stop);
+}
+function beginResize(event, element, corner) {
+  event.preventDefault(); event.stopPropagation();
+  const rect = poster.getBoundingClientRect();
+  const startX = event.clientX, startY = event.clientY;
+  const startRect = element.getBoundingClientRect();
+  const startWidth = startRect.width, startHeight = startRect.height;
+  const startLeft = (startRect.left - rect.left) / rect.width * 100;
+  const startTop = (startRect.top - rect.top) / rect.height * 100;
+  pushUndo();
+  event.target.setPointerCapture(event.pointerId);
+  const move = moveEvent => {
+    const dx = moveEvent.clientX - startX, dy = moveEvent.clientY - startY;
+    const horizontal = corner.includes('e') ? dx : -dx;
+    const vertical = corner.includes('s') ? dy : -dy;
+    const newWidth = Math.max(24, startWidth + horizontal);
+    const newHeight = Math.max(22, startHeight + vertical);
+    element.style.width = Math.min(newWidth / rect.width * 100, 100) + '%';
+    element.style.height = Math.min(newHeight / rect.height * 100, 100) + '%';
+    if (corner.includes('w')) element.style.left = Math.max(0, startLeft - (newWidth - startWidth) / rect.width * 100) + '%';
+    if (corner.includes('n')) element.style.top = Math.max(0, startTop - (newHeight - startHeight) / rect.height * 100) + '%';
+    positionSelectionToolbar();
+  };
+  const stop = () => {
+    event.target.removeEventListener('pointermove', move);
+    event.target.removeEventListener('pointerup', stop);
+    event.target.removeEventListener('pointercancel', stop);
+  };
+  event.target.addEventListener('pointermove', move);
+  event.target.addEventListener('pointerup', stop);
+  event.target.addEventListener('pointercancel', stop);
+}
+poster.addEventListener('pointerdown', event => {
+  const element = event.target.closest('.element');
+  if (!element) { if (!event.target.closest('.selection-toolbar')) deselect(); return; }
+  if (event.target.closest('.resize-handle')) {
+    selectElement(element); beginResize(event, element, event.target.dataset.handle); return;
+  }
+  selectElement(element);
+  if (element.getAttribute('contenteditable') === 'true') return;
+  if (event.button !== undefined && event.button !== 0) return;
+  event.preventDefault();
+  beginDrag(event, element);
+});
+poster.addEventListener('dblclick', event => {
+  const element = event.target.closest('.element');
+  if (!element || !(element.dataset.kind === 'text' || element.dataset.kind === 'sticker' || !element.dataset.kind)) return;
+  selectElement(element);
+  element.removeAttribute('contenteditable');
+  element.setAttribute('contenteditable', 'true');
+  element.focus();
+});
+poster.addEventListener('input', event => {
+  if (event.target === selectedElement && event.target.getAttribute('contenteditable') === 'true') {
+    document.getElementById('textInput').value = event.target.innerText;
+  }
+});
+poster.addEventListener('focusout', event => {
+  if (event.target.classList && event.target.classList.contains('element')) event.target.removeAttribute('contenteditable');
+});
+document.getElementById('textInput').addEventListener('focus', () => { if (selectedElement) pushUndo(); });
+document.getElementById('textInput').addEventListener('input', event => {
+  if (selectedElement && !event.target.disabled) selectedElement.innerText = event.target.value;
+});
+document.getElementById('textColor').addEventListener('pointerdown', () => { if (selectedElement) pushUndo(); });
+document.getElementById('textColor').addEventListener('input', event => {
+  if (selectedElement) {
+    const isShape = selectedElement.dataset.kind === 'shape';
+    selectedElement.style[isShape ? 'backgroundColor' : 'color'] = event.target.value;
+  }
+});
+document.getElementById('fontSize').addEventListener('pointerdown', () => { if (selectedElement) pushUndo(); });
+document.getElementById('fontSize').addEventListener('input', event => { if (selectedElement) selectedElement.style.fontSize = event.target.value + 'px'; });
+document.getElementById('fontFamily').addEventListener('focus', () => { if (selectedElement) pushUndo(); });
+document.getElementById('fontFamily').addEventListener('change', event => { if (selectedElement) selectedElement.style.fontFamily = event.target.value; });
+document.getElementById('rotation').addEventListener('pointerdown', () => { if (selectedElement) pushUndo(); });
+document.getElementById('rotation').addEventListener('input', event => {
+  if (!selectedElement) return;
+  const angle = Number(event.target.value);
+  selectedElement.style.transform = 'rotate(' + angle + 'deg)';
+  document.getElementById('rotationValue').textContent = angle + '°';
+  positionSelectionToolbar();
+});
+document.getElementById('backgroundColor').addEventListener('pointerdown', pushUndo);
+document.getElementById('backgroundColor').addEventListener('input', event => { poster.style.background = event.target.value; });
+document.getElementById('addTextButton').addEventListener('click', addText);
+document.getElementById('addShapeButton').addEventListener('click', addShape);
+document.getElementById('addStickerButton').addEventListener('click', addSticker);
+document.getElementById('uploadButton').addEventListener('click', () => document.getElementById('imageUpload').click());
+document.getElementById('imageUpload').addEventListener('change', event => {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Please choose an image file.'); event.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = () => { pushUndo(); makeElement('image', reader.result, { top: '30%', left: '25%', width: '50%', height: '35%', backgroundColor: 'rgba(255,255,255,.35)' }); };
+  reader.readAsDataURL(file); event.target.value = '';
+});
+document.getElementById('undoButton').addEventListener('click', undo);
+document.getElementById('redoButton').addEventListener('click', redo);
+document.getElementById('deleteButton').addEventListener('click', deleteElement);
+document.getElementById('duplicateButton').addEventListener('click', duplicateElement);
+document.getElementById('forwardButton').addEventListener('click', () => moveLayer(1));
+document.getElementById('backwardButton').addEventListener('click', () => moveLayer(-1));
+window.addEventListener('resize', positionSelectionToolbar);
+document.addEventListener('keydown', event => {
+  const editing = event.target.matches('input, textarea, select, [contenteditable="true"]');
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z' && !editing) { event.preventDefault(); event.shiftKey ? redo() : undo(); }
+  else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y' && !editing) { event.preventDefault(); redo(); }
+  else if ((event.key === 'Delete' || event.key === 'Backspace') && selectedElement && !editing) { event.preventDefault(); deleteElement(); }
+});
+function submitDesign() {
+  const title = document.getElementById('title');
+  const details = document.getElementById('details');
+  const titleSize = title ? parseInt(getComputedStyle(title).fontSize, 10) : 22;
+  const detailsText = details ? details.innerText.trim() : '';
+  const count = poster.querySelectorAll('.element').length;
+  const art = Math.min(100, 50 + (titleSize >= 30 ? 25 : 0) + (detailsText.length > 5 ? 15 : 0));
+  const color = Math.min(100, count >= 3 ? 85 : 55);
+  const creative = Math.min(100, count >= 4 ? 90 : 60);
+  document.getElementById('artScore').innerText = 'Score: ' + art + '/100';
+  document.getElementById('colorScore').innerText = 'Score: ' + color + '/100';
+  document.getElementById('creativeScore').innerText = 'Score: ' + creative + '/100';
+  const total = Math.round((art + color + creative) / 3);
+  const feedback = document.getElementById('feedback');
+  if (total >= 65) {
+    feedback.textContent = '🎉 POSTER SAVED! Your judges approve your design. Overall score: ' + total + '/100.';
+    document.getElementById('nextLevel').style.display = currentLevel < levels.length - 1 ? 'block' : 'none';
+  } else {
+    feedback.textContent = '🛠️ DESIGN NEEDS RESCUE! Keep adjusting your layout, colors, and typography. Score: ' + total + '/100. Try again!';
   }
 }
-
 function nextLevel() {
   if (currentLevel >= levels.length - 1) return;
-
   currentLevel++;
-
   const next = levels[currentLevel];
-
-  document.getElementById("levelTitle").innerText =
-    next.title;
-
-  document.getElementById("brief").innerText =
-    next.brief;
-
-  document.getElementById("nextLevel").style.display =
-    "none";
-
-  document.getElementById("feedback").innerText = "";
-
-  document.getElementById("artScore").innerText = "Score: —";
-  document.getElementById("colorScore").innerText = "Score: —";
-  document.getElementById("creativeScore").innerText = "Score: —";
-
-  document.getElementById("poster").style.background =
-    ["#dce9c8", "#d8d0fa", "#252d54", "#e8d9cf", "#f5d7b9", "#e8d9bd"][currentLevel - 1];
-
-  document.getElementById("title").innerText =
-    next.client.toUpperCase();
-
-  document.getElementById("subtitle").innerText =
-    "A NEW CREATIVE CHALLENGE";
-
-  document.getElementById("details").innerText =
-    "MAKE IT BEAUTIFUL";
+  document.getElementById('levelTitle').innerText = next.title;
+  document.getElementById('brief').innerText = next.brief;
+  document.getElementById('nextLevel').style.display = 'none';
+  document.getElementById('feedback').innerText = '';
+  document.getElementById('artScore').innerText = 'Score: —';
+  document.getElementById('colorScore').innerText = 'Score: —';
+  document.getElementById('creativeScore').innerText = 'Score: —';
+  const backgrounds = ['#dce9c8', '#d8d0fa', '#252d54', '#e8d9cf'];
+  poster.style.background = backgrounds[currentLevel - 1];
+  document.getElementById('backgroundColor').value = backgrounds[currentLevel - 1];
+  const title = document.getElementById('title');
+  const subtitle = document.getElementById('subtitle');
+  const details = document.getElementById('details');
+  if (title) title.innerText = next.client.toUpperCase();
+  if (subtitle) subtitle.innerText = 'A NEW CREATIVE CHALLENGE';
+  if (details) details.innerText = 'MAKE IT BEAUTIFUL';
+  deselect(); undoStack = []; redoStack = []; updateHistoryButtons();
 }
+document.getElementById('submitButton').addEventListener('click', submitDesign);
+document.getElementById('nextLevel').addEventListener('click', nextLevel);
+poster.querySelectorAll('.element').forEach(element => { element.dataset.kind = 'text'; });
+updateHistoryButtons();
 </script>
-
 </body>
 </html>
