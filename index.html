@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Rescue - Creative Challenge</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f0fa;
+  color: #29223b;
+}
+
+header {
+  background: #29223b;
+  color: white;
+  padding: 22px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+}
+
+main {
+  max-width: 1000px;
+  margin: auto;
+  padding: 25px 15px;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.panel {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px #0001;
+}
+
+.poster {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 5;
+  margin: auto;
+  background: #f4bfd0;
+  overflow: hidden;
+  border: 5px solid white;
+}
+
+.element {
+  position: absolute;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  padding: 5px;
+}
+
+.element.selected {
+  outline: 2px dashed #7256d8;
+}
+
+#title {
+  top: 20%;
+  left: 10%;
+  width: 80%;
+  font-size: 40px;
+  font-weight: bold;
+  text-align: center;
+}
+
+#subtitle {
+  top: 50%;
+  left: 10%;
+  width: 80%;
+  text-align: center;
+  font-size: 17px;
+}
+
+#details {
+  top: 75%;
+  left: 10%;
+  width: 80%;
+  text-align: center;
+  font-size: 15px;
+}
+
+.controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+input, button {
+  padding: 11px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font: inherit;
+}
+
+button {
+  background: #7256d8;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #5740b0;
+}
+
+.judge {
+  padding: 12px;
+  background: #f4f0fa;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.feedback {
+  margin-top: 15px;
+  line-height: 1.5;
+  font-weight: bold;
+}
+
+@media (max-width: 700px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🎨 DESIGN RESCUE</h1>
+  <p>The Creative Challenge</p>
+</header>
+
+<main>
+
+  <h2 id="levelTitle">Level 1: Save the Music Poster</h2>
+
+  <div class="workspace">
+
+    <section class="panel">
+      <h3>Your Poster</h3>
+
+      <div class="poster" id="poster">
+
+        <div class="element" id="title">
+          STATIC BLOOM
+        </div>
+
+        <div class="element" id="subtitle">
+          LIVE MUSIC • ONE NIGHT ONLY
+        </div>
+
+        <div class="element" id="details">
+          FRIDAY • 8 PM<br>
+          THE OLD THEATRE
+        </div>
+
+      </div>
+
+      <div class="controls">
+
+        <label>Edit selected text:</label>
+        <input id="textInput" type="text"
+          placeholder="Select a text element first">
+
+        <label>Change text color:</label>
+        <input id="textColor" type="color"
+          value="#29223b">
+
+        <label>Change font size:</label>
+        <input id="fontSize" type="range"
+          min="10" max="65" value="40">
+
+        <label>Change poster background:</label>
+        <input id="backgroundColor" type="color"
+          value="#f4bfd0">
+
+        <button onclick="addText()">
+          + Add Text
+        </button>
+
+        <button onclick="addShape()">
+          + Add Shape
+        </button>
+
+        <button onclick="deleteElement()">
+          Delete Selected Element
+        </button>
+
+      </div>
+    </section>
+
+    <section class="panel">
+
+      <h3>Client Brief</h3>
+
+      <p id="brief">
+        The Static Bloom needs a music poster
+        that feels exciting, professional,
+        and easy to read.
+      </p>
+
+      <h3>What the judges are looking for</h3>
+
+      <ul>
+        <li>Clear and readable typography</li>
+        <li>Colors that work well together</li>
+        <li>Balanced spacing and composition</li>
+        <li>A strong overall design</li>
+      </ul>
+
+      <h3>Meet Your Judges</h3>
+
+      <div class="judge">
+        🎨 <b>Art Director</b>
+        <p>Professionalism and readability</p>
+        <span id="artScore">Score: —</span>
+      </div>
+
+      <div class="judge">
+        🌈 <b>Color Expert</b>
+        <p>Color harmony and contrast</p>
+        <span id="colorScore">Score: —</span>
+      </div>
+
+      <div class="judge">
+        ✨ <b>Creative Director</b>
+        <p>Composition and visual impact</p>
+        <span id="creativeScore">Score: —</span>
+      </div>
+
+      <button onclick="submitDesign()">
+        Submit Design to Judges
+      </button>
+
+      <div class="feedback" id="feedback"></div>
+
+      <button id="nextLevel" onclick="nextLevel()"
+        style="display:none; margin-top:15px;">
+        Next Challenge →
+      </button>
+
+    </section>
+
+  </div>
+</main>
+
+<script>
+let selectedElement = null;
+let currentLevel = 0;
+let extraNumber = 0;
+
+const levels = [
+  {
+    title: "Level 1: Save the Music Poster",
+    client: "The Static Bloom",
+    brief: "Create an exciting, professional poster for a local indie band."
+  },
+  {
+    title: "Level 2: Freshen Up the Market",
+    client: "Sunday Harvest Market",
+    brief: "Create a welcoming farmers market poster using fresh colors and clear information."
+  },
+  {
+    title: "Level 3: Promote a Workshop",
+    client: "Make Space Studio",
+    brief: "Design a playful but organized poster for a creative workshop."
+  },
+  {
+    title: "Level 4: Outdoor Cinema",
+    client: "Moonlight Movies",
+    brief: "Create an atmospheric poster for an outdoor movie night."
+  },
+  {
+    title: "Level 5: Art Collection Launch",
+    client: "MM Creations",
+    brief: "Create a polished and memorable poster announcing a new art collection."
+  },
+  {
+    title: "Bonus 1: Run for a Reason",
+    client: "Steps for Shelter",
+    brief: "Design an energetic poster encouraging people to join a charity 5K."
+  },
+  {
+    title: "Bonus 2: Café Grand Opening",
+    client: "Little Fern Café",
+    brief: "Create a warm and inviting poster for a new independent café."
+  }
+];
+
+function selectElement(element) {
+  selectedElement = element;
+
+  document.querySelectorAll(".element")
+    .forEach(el => el.classList.remove("selected"));
+
+  element.classList.add("selected");
+
+  document.getElementById("textInput").value =
+    element.innerText;
+
+  document.getElementById("textColor").value =
+    rgbToHex(getComputedStyle(element).color);
+
+  document.getElementById("fontSize").value =
+    parseInt(getComputedStyle(element).fontSize);
+}
+
+function rgbToHex(color) {
+  const values = color.match(/\d+/g);
+  return "#" + values.slice(0, 3)
+    .map(v => Number(v).toString(16).padStart(2, "0"))
+    .join("");
+}
+
+document.querySelectorAll(".element").forEach(element => {
+  makeDraggable(element);
+  element.addEventListener("click", () =>
+    selectElement(element));
+});
+
+document.getElementById("textInput")
+  .addEventListener("input", event => {
+    if (selectedElement) {
+      selectedElement.innerText = event.target.value;
+    }
+  });
+
+document.getElementById("textColor")
+  .addEventListener("input", event => {
+    if (selectedElement) {
+      selectedElement.style.color = event.target.value;
+    }
+  });
+
+document.getElementById("fontSize")
+  .addEventListener("input", event => {
+    if (selectedElement) {
+      selectedElement.style.fontSize =
+        event.target.value + "px";
+    }
+  });
+
+document.getElementById("backgroundColor")
+  .addEventListener("input", event => {
+    document.getElementById("poster")
+      .style.background = event.target.value;
+  });
+
+function makeDraggable(element) {
+  let startX, startY, originalX, originalY;
+
+  element.addEventListener("pointerdown", event => {
+    if (event.target !== element) return;
+
+    selectElement(element);
+
+    const poster = document.getElementById("poster");
+    const posterRect = poster.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
+
+    startX = event.clientX;
+    startY = event.clientY;
+
+    originalX = rect.left - posterRect.left;
+    originalY = rect.top - posterRect.top;
+
+    element.setPointerCapture(event.pointerId);
+
+    function move(moveEvent) {
+      const x = originalX + moveEvent.clientX - startX;
+      const y = originalY + moveEvent.clientY - startY;
+
+      element.style.left =
+        (x / posterRect.width * 100) + "%";
+
+      element.style.top =
+        (y / posterRect.height * 100) + "%";
+    }
+
+    function stop() {
+      element.removeEventListener("pointermove", move);
+      element.removeEventListener("pointerup", stop);
+    }
+
+    element.addEventListener("pointermove", move);
+    element.addEventListener("pointerup", stop);
+  });
+}
+
+function addText() {
+  extraNumber++;
+
+  const element = document.createElement("div");
+  element.className = "element";
+  element.innerText = "YOUR TEXT";
+  element.style.cssText =
+    "top:30%;left:15%;width:70%;font-size:22px;text-align:center;color:#29223b;";
+
+  document.getElementById("poster").appendChild(element);
+
+  makeDraggable(element);
+  selectElement(element);
+}
+
+function addShape() {
+  extraNumber++;
+
+  const element = document.createElement("div");
+  element.className = "element";
+  element.style.cssText =
+    "top:35%;left:30%;width:40%;height:15%;background:#f9e879;border-radius:50%;";
+
+  document.getElementById("poster").appendChild(element);
+
+  makeDraggable(element);
+  selectElement(element);
+}
+
+function deleteElement() {
+  if (!selectedElement) return;
+
+  selectedElement.remove();
+  selectedElement = null;
+  document.getElementById("textInput").value = "";
+}
+
+function submitDesign() {
+  const title = document.getElementById("title");
+  const details = document.getElementById("details");
+  const poster = document.getElementById("poster");
+
+  const titleSize =
+    parseInt(getComputedStyle(title).fontSize);
+
+  const art = Math.min(100,
+    50 + (titleSize >= 30 ? 25 : 0) +
+    (details.innerText.trim().length > 5 ? 15 : 0));
+
+  const color = Math.min(100,
+    poster.querySelectorAll(".element").length >= 3 ? 85 : 55);
+
+  const creative = Math.min(100,
+    poster.querySelectorAll(".element").length >= 4 ? 90 : 60);
+
+  document.getElementById("artScore").innerText =
+    "Score: " + art + "/100";
+
+  document.getElementById("colorScore").innerText =
+    "Score: " + color + "/100";
+
+  document.getElementById("creativeScore").innerText =
+    "Score: " + creative + "/100";
+
+  const total = Math.round((art + color + creative) / 3);
+
+  const feedback = document.getElementById("feedback");
+
+  if (total >= 65) {
+    feedback.innerHTML =
+      "🎉 POSTER SAVED! Your judges approve your design. Overall score: " +
+      total + "/100.";
+
+    document.getElementById("nextLevel").style.display =
+      currentLevel < levels.length - 1 ? "block" : "none";
+  } else {
+    feedback.innerHTML =
+      "🛠️ DESIGN NEEDS RESCUE! Keep adjusting your layout, colors, and typography. Score: " +
+      total + "/100. Try again!";
+  }
+}
+
+function nextLevel() {
+  if (currentLevel >= levels.length - 1) return;
+
+  currentLevel++;
+
+  const next = levels[currentLevel];
+
+  document.getElementById("levelTitle").innerText =
+    next.title;
+
+  document.getElementById("brief").innerText =
+    next.brief;
+
+  document.getElementById("nextLevel").style.display =
+    "none";
+
+  document.getElementById("feedback").innerText = "";
+
+  document.getElementById("artScore").innerText = "Score: —";
+  document.getElementById("colorScore").innerText = "Score: —";
+  document.getElementById("creativeScore").innerText = "Score: —";
+
+  document.getElementById("poster").style.background =
+    ["#dce9c8", "#d8d0fa", "#252d54", "#e8d9cf", "#f5d7b9", "#e8d9bd"][currentLevel - 1];
+
+  document.getElementById("title").innerText =
+    next.client.toUpperCase();
+
+  document.getElementById("subtitle").innerText =
+    "A NEW CREATIVE CHALLENGE";
+
+  document.getElementById("details").innerText =
+    "MAKE IT BEAUTIFUL";
+}
+</script>
+
+</body>
+</html>
